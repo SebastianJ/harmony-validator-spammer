@@ -1,0 +1,37 @@
+network:
+  name: "localnet"
+  mode: "api" # If you want the framework to use your local node running in a specific network, set this to "local"
+
+application:
+  infinite: false
+  count: 1000
+  pool_size: 10
+
+funding:
+  confirmation_wait_time: 16
+  attempts: 10
+  gas:
+    cost: 0.0001
+    limit: -1
+    price: 1
+  
+staking:
+  validator:
+    name: "Bubz"
+    identity: "MrBubz"
+    website: "https://i.imgur.com/G6Mruca.jpg"
+    security_contact: "Bubz Hacker Legion"
+    details: "https://www.youtube.com/watch?v=QQNL83fhWJU"
+  commission:
+    rate: 0
+    max_rate: 0.1
+    max_change_rate: 0.05
+  amount: 10 # This is the self-delegation amount
+  minimum_self_delegation: 5
+  maximum_total_delegation: 1000
+  bls_key_count: 1
+  nonce: -1 # -1 means that the nonce will automatically be identified
+  confirmation_wait_time: 60
+  gas:
+    limit: -1 # -1 means that the gas limit will automatically get calculated
+    price: 1
