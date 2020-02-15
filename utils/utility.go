@@ -3,36 +3,21 @@ package utils
 import (
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
-	"strings"
-	"time"
 
 	"gopkg.in/yaml.v2"
 )
 
-// FetchReceivers - fetch a list of proxies from a specified file
-func FetchReceivers(filePath string) (lines []string, err error) {
-	data, err := ReadFileToString(filePath)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(data) > 0 {
-		lines = strings.Split(string(data), "\n")
-
-		if strings.Contains(data, "\n") {
-			lines = lines[:len(lines)-1]
+// CreateDirectory - creates a directory (mkdir -p) if it already doesn't exist
+func CreateDirectory(dir string) error {
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			return err
 		}
 	}
 
-	return lines, nil
-}
-
-// RandomStringSliceItem - fetches a random string from a given string slice
-func RandomStringSliceItem(r *rand.Rand, items []string) string {
-	return items[r.Intn(len(items))]
+	return nil
 }
 
 // ReadFileToString - check if a file exists, proceed to read it to memory if it does
@@ -74,26 +59,4 @@ func ParseYaml(path string, entity interface{}) error {
 	}
 
 	return nil
-}
-
-// RandomItemFromMap - select a random item from a map
-func RandomItemFromMap(itemMap map[string]string) (string, string) {
-	var keys []string
-
-	for key := range itemMap {
-		keys = append(keys, key)
-	}
-
-	randKey := RandomItemFromSlice(keys)
-	randItem := itemMap[randKey]
-
-	return randKey, randItem
-}
-
-// RandomItemFromSlice - select a random item from a slice
-func RandomItemFromSlice(items []string) string {
-	rand.Seed(time.Now().Unix())
-	item := items[rand.Intn(len(items))]
-
-	return item
 }

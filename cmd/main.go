@@ -48,13 +48,11 @@ func main() {
 		cli.IntFlag{
 			Name:  "count",
 			Usage: "How many transactions to send in total",
-			Value: 1000,
 		},
 
 		cli.IntFlag{
 			Name:  "pool-size",
 			Usage: "How many validators to create simultaneously",
-			Value: 100,
 		},
 
 		cli.IntFlag{
