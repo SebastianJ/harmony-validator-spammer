@@ -1,4 +1,4 @@
-# Harmony Tx Sender
+# Harmony Validator Spammer
 Harmony tx sender is a tool to bulk send transactions on Harmony's blockchain.
 
 ## Prerequisites
@@ -22,24 +22,22 @@ Find the address of your newly imported key:
 bash <(curl -s -S -L https://raw.githubusercontent.com/SebastianJ/harmony-validator-spammer/master/scripts/install.sh)
 ```
 
-The installer script will also create the data/ folder where you'll find the files receivers.txt and data.txt
+The installer script will also download the `config.yml` (contains general settings) and `staking.yml` (contains the create validator settings).
 
-`data/receivers.txt` is the file where you enter the receiver accounts you want the tx sender to send tokens to
-`data/data.txt` is the tx data that you want the tx sender to use for every transaction it sends.
 
 ## Usage
 ```
-./harmony-validator-spammer --from YOUR_SENDER_ACCOUNT_ADDRESS --from-shard 0 --to-shard 0 --count 1000 --pool-size 100
+./harmony-validator-spammer --network staking --from YOUR_SENDER_ACCOUNT_ADDRESS --infinite
 ```
 
 ### All options:
 
 ```
 NAME:
-   Harmony Tx Sender - stress test and bulk transaction sending tool - Use --help to see all available arguments
+   Harmony Validator Spammer - stress tests a staking enabled Harmony network/blockchain - Use --help to see all available arguments
 
 USAGE:
-   main [global options] command [command options] [arguments...]
+   harmony-validator-spammer [global options] command [command options] [arguments...]
 
 VERSION:
    go1.13.7/darwin-amd64
@@ -51,17 +49,14 @@ COMMANDS:
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --mode value                    How to execute transactions - synchronously or asynchronously (possible values: sync, async)
    --network value                 Which network to use (valid options: localnet, devnet, testnet, mainnet)
-   --path value                    The path relative to the binary where config.yml and data files can be found (default: "./")
    --from value                    Which address to send tokens from (must exist in the keystore)
-   --from-shard value              What shard to send tokens from (default: 0)
    --passphrase value              Passphrase to use for unlocking the keystore
-   --to-shard value                What shard to send tokens to (default: 0)
-   --amount value                  How many tokens to send per tx
-   --count value                   How many transactions to send in total (default: 1000)
-   --pool-size value               How many transactions to send simultaneously (default: 100)
+   --infinite                      If the program should run in an infinite loop
+   --count value                   How many transactions to send in total (default: 0)
+   --pool-size value               How many validators to create simultaneously (default: 0)
    --confirmation-wait-time value  How long to wait for transactions to get confirmed (default: 0)
+   --verbose                       Enable more verbose output
    --help, -h                      show help
    --version, -v                   print the version
 ```
