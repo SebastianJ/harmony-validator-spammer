@@ -26,6 +26,8 @@ import (
 
 // CreateValidators - mass creates validators
 func CreateValidators() {
+	fmt.Printf("Starting validator spammer - network: %s, mode: %s, node: %s\n", config.Configuration.Network.Name, config.Configuration.Network.Mode, config.Configuration.Network.Node)
+
 	rpcClient, _ := config.Configuration.Network.API.RPCClient(0)
 
 	index := 0

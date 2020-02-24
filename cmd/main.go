@@ -29,6 +29,12 @@ func main() {
 		},
 
 		cli.StringFlag{
+			Name:  "mode",
+			Usage: "Which mode to use (valid options: api and local)",
+			Value: "",
+		},
+
+		cli.StringFlag{
 			Name:  "from",
 			Usage: "Which address to send tokens from (must exist in the keystore)",
 			Value: "",
