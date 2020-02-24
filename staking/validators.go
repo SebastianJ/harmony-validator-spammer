@@ -73,7 +73,7 @@ func CreateValidator(index int, nonce int, waitGroup *sync.WaitGroup) error {
 	accountName := fmt.Sprintf("ValidatorSpammer_Account_%d", index)
 	logger.AccountLog(fmt.Sprintf("Generating a new account: %s", accountName), config.Configuration.Application.Verbose)
 
-	account, err := accounts.GenerateTypedAccount(accountName)
+	account, err := accounts.GenerateAccount(accountName)
 	if err != nil {
 		logger.ErrorLog(err.Error(), config.Configuration.Application.Verbose)
 		return err
@@ -90,7 +90,7 @@ func CreateValidator(index int, nonce int, waitGroup *sync.WaitGroup) error {
 	//testing.FundingLog(fmt.Sprintf("Available funding amount in the funding account %s, address: %s is %f", config.Configuration.Funding.Account.Name, config.Configuration.Funding.Account.Address, fundingAccountBalance), config.Configuration.Application.Verbose)
 	fundingAmount := funding.CalculateFundingAmount(config.Staking.Amount, fundingAccountBalance, 1)
 	logger.FundingLog(fmt.Sprintf("Funding account %s, address: %s with %f", account.Name, account.Address, fundingAmount), config.Configuration.Application.Verbose)
-	funding.PerformFundingTransaction(config.Configuration.Funding.Account.Address, 0, account.Address, 0, fundingAmount, nonce, config.Configuration.Funding.Gas.Limit, config.Configuration.Funding.Gas.Price, config.Configuration.Funding.ConfirmationWaitTime, config.Configuration.Funding.Attempts)
+	funding.PerformFundingTransaction(&config.Configuration.Funding.Account, 0, account.Address, 0, fundingAmount, nonce, config.Configuration.Funding.Gas.Limit, config.Configuration.Funding.Gas.Price, config.Configuration.Funding.ConfirmationWaitTime, config.Configuration.Funding.Attempts)
 
 	accountStartingBalance, _ := balances.GetShardBalance(account.Address, 0)
 	logger.AccountLog(fmt.Sprintf("Using account %s, address: %s to create a new validator", account.Name, account.Address), config.Configuration.Application.Verbose)
@@ -99,8 +99,8 @@ func CreateValidator(index int, nonce int, waitGroup *sync.WaitGroup) error {
 	fmt.Println("")
 
 	config.Staking.Validator.Address = account.Address
-	blsKeys := crypto.GenerateBlsKeys(config.Staking.BLSKeyCount)
-	rawTx, err := tfStaking.CreateValidator(config.Staking, blsKeys)
+	blsKeys := crypto.GenerateBlsKeys(config.Staking.BLSKeyCount, "")
+	rawTx, err := tfStaking.CreateValidator(account, config.Staking, blsKeys)
 	if err != nil {
 		logger.ErrorLog(fmt.Sprintf("Failed to create validator - error: %s", err.Error()), config.Configuration.Application.Verbose)
 		return err
@@ -122,7 +122,7 @@ func CreateValidator(index int, nonce int, waitGroup *sync.WaitGroup) error {
 			exportKeys(account, blsKeys)
 		}
 
-		testing.Teardown(account.Name, account.Address, 0, config.Configuration.Funding.Account.Address, 0)
+		testing.Teardown(&account, 0, config.Configuration.Funding.Account.Address, 0)
 	} else {
 		goSdkAccount.RemoveAccount(account.Name)
 	}
