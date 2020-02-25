@@ -97,36 +97,41 @@ func CreateValidator(index int, nonce int, waitGroup *sync.WaitGroup) error {
 	accountStartingBalance, _ := balances.GetShardBalance(account.Address, 0)
 	logger.AccountLog(fmt.Sprintf("Using account %s, address: %s to create a new validator", account.Name, account.Address), config.Configuration.Application.Verbose)
 	logger.BalanceLog(fmt.Sprintf("Account %s, address: %s has a starting balance of %f in shard %d before the test", account.Name, account.Address, accountStartingBalance, 0), config.Configuration.Application.Verbose)
-	logger.TransactionLog(fmt.Sprintf("Sending create validator transaction - will wait %d seconds for it to finalize", config.Staking.ConfirmationWaitTime), config.Configuration.Application.Verbose)
-	fmt.Println("")
 
-	config.Staking.Validator.Address = account.Address
-	blsKeys := crypto.GenerateBlsKeys(config.Staking.BLSKeyCount, "")
-	rawTx, err := tfStaking.CreateValidator(account, config.Staking, blsKeys)
-	if err != nil {
-		logger.ErrorLog(fmt.Sprintf("Failed to create validator - error: %s", err.Error()), config.Configuration.Application.Verbose)
-		return err
-	}
+	if !accountStartingBalance.IsZero() {
+		logger.TransactionLog(fmt.Sprintf("Sending create validator transaction - will wait %d seconds for it to finalize", config.Staking.ConfirmationWaitTime), config.Configuration.Application.Verbose)
+		fmt.Println("")
 
-	tx := sdkTxs.ToTransaction(account.Address, 0, account.Address, 0, rawTx, err)
-
-	if config.Staking.ConfirmationWaitTime > 0 {
-		txResultColoring := logger.ResultColoring(tx.Success, true).Render(fmt.Sprintf("tx successful: %t", tx.Success))
-		logger.TransactionLog(fmt.Sprintf("Performed create validator - transaction hash: %s, %s", tx.TransactionHash, txResultColoring), config.Configuration.Application.Verbose)
-	} else {
-		logger.TransactionLog(fmt.Sprintf("Performed create validator - transaction hash: %s", tx.TransactionHash), config.Configuration.Application.Verbose)
-	}
-
-	logger.TeardownLog("Performing test teardown (returning funds and removing accounts)\n", config.Configuration.Application.Verbose)
-
-	if config.Staking.ConfirmationWaitTime > 0 {
-		if tx.Success {
-			exportKeys(account, blsKeys)
+		config.Staking.Validator.Address = account.Address
+		blsKeys := crypto.GenerateBlsKeys(config.Staking.BLSKeyCount, "")
+		rawTx, err := tfStaking.CreateValidator(account, config.Staking, blsKeys)
+		if err != nil {
+			logger.ErrorLog(fmt.Sprintf("Failed to create validator - error: %s", err.Error()), config.Configuration.Application.Verbose)
+			return err
 		}
 
-		testing.Teardown(&account, 0, config.Configuration.Funding.Account.Address, 0)
+		tx := sdkTxs.ToTransaction(account.Address, 0, account.Address, 0, rawTx, err)
+
+		if config.Staking.ConfirmationWaitTime > 0 {
+			txResultColoring := logger.ResultColoring(tx.Success, true).Render(fmt.Sprintf("tx successful: %t", tx.Success))
+			logger.TransactionLog(fmt.Sprintf("Performed create validator - transaction hash: %s, %s", tx.TransactionHash, txResultColoring), config.Configuration.Application.Verbose)
+		} else {
+			logger.TransactionLog(fmt.Sprintf("Performed create validator - transaction hash: %s", tx.TransactionHash), config.Configuration.Application.Verbose)
+		}
+
+		logger.TeardownLog("Performing test teardown (returning funds and removing accounts)\n", config.Configuration.Application.Verbose)
+
+		if config.Staking.ConfirmationWaitTime > 0 {
+			if tx.Success {
+				exportKeys(account, blsKeys)
+			}
+
+			testing.Teardown(&account, 0, config.Configuration.Funding.Account.Address, 0)
+		} else {
+			goSdkAccount.RemoveAccount(account.Name)
+		}
 	} else {
-		goSdkAccount.RemoveAccount(account.Name)
+		logger.ErrorLog(fmt.Sprintf("Account %s, address: %s doesn't have sufficient balance to create a validator! The account should have a balance of %f but the actual balance is %f", account.Name, account.Address, fundingAmount, accountStartingBalance), config.Configuration.Application.Verbose)
 	}
 
 	return nil
