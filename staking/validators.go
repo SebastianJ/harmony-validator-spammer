@@ -28,12 +28,8 @@ import (
 func CreateValidators() {
 	fmt.Printf("Starting validator spammer - network: %s, mode: %s, node: %s\n", config.Configuration.Network.Name, config.Configuration.Network.Mode, config.Configuration.Network.Node)
 
-	rpcClient, _ := config.Configuration.Network.API.RPCClient(0)
-
 	index := 0
-	nonce := -1
-	receivedNonce := sdkNetwork.CurrentNonce(rpcClient, config.Configuration.Funding.Account.Address)
-	nonce = int(receivedNonce)
+	nonce := currentNonce()
 
 	if config.Configuration.Application.Infinite {
 		for {
@@ -135,6 +131,33 @@ func CreateValidator(index int, nonce int, waitGroup *sync.WaitGroup) error {
 	}
 
 	return nil
+}
+
+func currentNonce() (nonce int) {
+	nonce = -1
+	rpcClient, _ := config.Configuration.Network.API.RPCClient(0)
+
+	if config.Configuration.Network.Mode == "local" {
+		rpcNode := sdkNetwork.GenerateNodeAddress(config.Configuration.Network.Name, "api", 0)
+		remoteRPCClient, _ := sdkNetwork.NewRPCClient(rpcNode, 0)
+		rpcNonce := sdkNetwork.CurrentNonce(remoteRPCClient, config.Configuration.Funding.Account.Address)
+		localNonce := sdkNetwork.CurrentNonce(rpcClient, config.Configuration.Funding.Account.Address)
+
+		fmt.Printf("Current RPC nonce is: %d, current local nonce is: %d\n", rpcNonce, localNonce)
+
+		if rpcNonce > localNonce {
+			nonce = int(rpcNonce)
+		} else {
+			nonce = int(localNonce)
+		}
+	} else {
+		receivedNonce := sdkNetwork.CurrentNonce(rpcClient, config.Configuration.Funding.Account.Address)
+		nonce = int(receivedNonce)
+	}
+
+	fmt.Printf("The current nonce is: %d\n", nonce)
+
+	return nonce
 }
 
 func exportKeys(account sdkAccounts.Account, blsKeys []sdkCrypto.BLSKey) error {
